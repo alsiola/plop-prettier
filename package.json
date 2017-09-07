@@ -1,0 +1,32 @@
+{
+    "name": "plop-prettier",
+    "version": "1.0.2",
+    "description": "Use prettier to format plop templates",
+    "main": "lib/index.js",
+    "types": "lib/index.d.ts",
+    "directories": {
+        "lib": "lib"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/alsiola/plop-prettier.git"
+    },
+    "keywords": ["plop", "prettier"],
+    "author": "Alex Young",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/alsiola/plop-prettier/issues"
+    },
+    "homepage": "https://github.com/alsiola/plop-prettier#readme",
+    "devDependencies": {
+        "@types/node": "^8.0.27",
+        "typescript": "^2.5.2"
+    },
+    "dependencies": {
+        "@types/prettier": "^1.6.1",
+        "prettier": "^1.6.1"
+    }
+}
