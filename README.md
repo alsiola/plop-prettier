@@ -7,13 +7,12 @@ npm i --save plop-prettier
 ````
 
 ## Usage
-In your base plopfile, import the plopPrettier function from plop-prettier, and pass it the plop instance as an argument:
+In your base plopfile, use `plop.load` to add the "pretty-add" action::
 ````
 const aGenerator = require("./path/to/a/generator");
-const plopPrettier = require("plop-prettier");
 
 module.exports = function(plop) {
-    plopPrettier(plop);
+    plop.load("plop-prettier");
 
     plop.setGenerator("Generator Name", aGenerator);
 };
@@ -28,15 +27,14 @@ const anAction = {
 ````
 
 ## Options
-The `plopPrettier` function has two optional arguments, allowing you to use prettier options, and to set a custom action name to use in your generators.  For information on available prettier options see the [prettier docs](https://github.com/prettier/prettier#options).
+Prettier options can be provided - for information on available prettier options see the [prettier docs](https://github.com/prettier/prettier#options).
 ````
 const aGenerator = require("./path/to/a/generator");
-const plopPrettier = require("plop-prettier");
 
 module.exports = function(plop) {
-    plopPrettier(plop, {
+    plop.load("plop-prettier", {
         tabWidth: 4
-    }, "action-name");
+    });
 
     plop.setGenerator("Generator Name", aGenerator);
 };
