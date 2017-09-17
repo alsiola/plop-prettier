@@ -71,23 +71,47 @@ const prettyAdd = async (data, cfg, plop, prettierOpts) => {
     }
 };
 
-function plopPrettier(
-    plop,
-    prettierOpts?: prettier.Options,
-    actionName?: string
-) {
-    plop.setActionType(
-        actionName || "pretty-add",
-        async (data, config, plop) => {
-            const validInterface = interfaceCheck(config);
+function plopPrettier(plop, config?: prettier.Options) {
+    // Destructure prettier options out of config otherwise unrecognised properties
+    // are passed to prettier and cause a console warning
+    const {
+        printWidth,
+        tabWidth,
+        useTabs,
+        semi,
+        singleQuote,
+        trailingComma,
+        bracketSpacing,
+        jsxBracketSameLine,
+        rangeStart,
+        rangeEnd,
+        parser,
+        filepath
+    } = config;
+    const prettierOpts = {
+        printWidth,
+        tabWidth,
+        useTabs,
+        semi,
+        singleQuote,
+        trailingComma,
+        bracketSpacing,
+        jsxBracketSameLine,
+        rangeStart,
+        rangeEnd,
+        parser,
+        filepath
+    };
+    plop.setDefaultInclude({ actionTypes: true });
+    plop.setActionType("pretty-add", async (data, config, plop) => {
+        const validInterface = interfaceCheck(config);
 
-            if (!validInterface) {
-                throw validInterface;
-            }
-
-            return await prettyAdd(data, config, plop, prettierOpts);
+        if (!validInterface) {
+            throw validInterface;
         }
-    );
+
+        return await prettyAdd(data, config, plop, prettierOpts);
+    });
     return plop;
 }
 
