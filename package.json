@@ -14,7 +14,10 @@
         "type": "git",
         "url": "git+https://github.com/alsiola/plop-prettier.git"
     },
-    "keywords": ["plop", "prettier"],
+    "keywords": [
+        "plop",
+        "prettier"
+    ],
     "author": "Alex Young",
     "license": "MIT",
     "bugs": {
@@ -22,11 +25,13 @@
     },
     "homepage": "https://github.com/alsiola/plop-prettier#readme",
     "devDependencies": {
-        "@types/node": "^8.0.27",
-        "typescript": "^2.5.2"
+        "@types/node": "^8.10.54",
+        "@types/prettier": "^1.18.3",
+        "prettier": "^1.17.0",
+        "typescript": "^3.6.4"
     },
-    "dependencies": {
-        "@types/prettier": "^1.6.1",
-        "prettier": "^1.6.1"
+    "peerDependencies": {
+        "@types/prettier": "^1.18.3",
+        "prettier": "^1.17.0"
     }
 }
