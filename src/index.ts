@@ -2,6 +2,12 @@ import * as path from "path";
 import * as fs from "fs-extra";
 import * as prettier from "prettier";
 
+interface Plop {
+    getPlopfilePath: () => string;
+    getDestBasePath: () => string;
+    renderString: (arg0: any, arg1: any) => string;
+}
+
 const writeFile = (pathToWrite: any, data: any) =>
     fs.writeFile(pathToWrite, data, "utf-8");
 const readFile = (pathToWrite: string) => fs.readFile(pathToWrite, "utf-8");
@@ -24,57 +30,37 @@ const interfaceCheck = (action: { path: any }) => {
 
 const prettyAdd = async (
     data: any,
-    cfg: { template?: any; path?: any; templateFile?: any },
-    plop: {
-        getPlopfilePath: () => string;
-        getDestBasePath: { (): string; (): string };
-        renderString: {
-            (arg0: any, arg1: any): string;
-            (arg0: any, arg1: any): string;
-        };
-    },
+    cfg: { template?: string; path?: string; templateFile?: string },
+    plop: Plop,
     prettierOpts: prettier.Options
 ) => {
-    // if not already an absolute path, make an absolute path from the basePath (plopfile location)
-    const makeTmplPath = (p: any) => path.resolve(plop.getPlopfilePath(), p);
-    const makeDestPath = (p: any) => path.resolve(plop.getDestBasePath(), p);
+    const { template: optTemplate, templateFile } = cfg;
 
-    var { template } = cfg;
-    const fileDestPath = makeDestPath(plop.renderString(cfg.path || "", data));
+    const template =
+        (templateFile
+            ? await readFile(path.resolve(plop.getPlopfilePath(), templateFile))
+            : optTemplate) || "";
 
-    try {
-        if (cfg.templateFile) {
-            template = await readFile(makeTmplPath(cfg.templateFile));
+    const fileDestPath = path.resolve(
+        plop.getDestBasePath(),
+        plop.renderString(cfg.path || "", data)
+    );
+
+    if (await fileExists(fileDestPath)) {
+        throw `File already exists\n -> ${fileDestPath}`;
+    } else {
+        const dirExists = await fileExists(path.dirname(fileDestPath));
+        if (!dirExists) {
+            await fs.mkdir(path.dirname(fileDestPath));
         }
-        if (template == null) {
-            template = "";
-        }
-
-        // check path
-        const pathExists = await fileExists(fileDestPath);
-
-        if (pathExists) {
-            throw `File already exists\n -> ${fileDestPath}`;
-        } else {
-            const dirExists = await fileExists(path.dirname(fileDestPath));
-            if (!dirExists) {
-                await fs.mkdir(path.dirname(fileDestPath));
-            }
-            await writeFile(
-                fileDestPath,
-                prettier.format(plop.renderString(template, data), prettierOpts)
-            );
-        }
-
-        // return the added file path (relative to the destination path)
-        return fileDestPath.replace(path.resolve(plop.getDestBasePath()), "");
-    } catch (err) {
-        if (typeof err === "string") {
-            throw err;
-        } else {
-            throw err.message || JSON.stringify(err);
-        }
+        await writeFile(
+            fileDestPath,
+            prettier.format(plop.renderString(template, data), prettierOpts)
+        );
     }
+
+    // return the added file path (relative to the destination path)
+    return fileDestPath.replace(path.resolve(plop.getDestBasePath()), "");
 };
 
 function plopPrettier(
@@ -87,51 +73,17 @@ function plopPrettier(
     },
     config?: prettier.Options
 ) {
-    // Destructure prettier options out of config otherwise unrecognised properties
-    // are passed to prettier and cause a console warning
-    const {
-        arrowParens,
-        quoteProps,
-        printWidth,
-        tabWidth,
-        useTabs,
-        semi,
-        singleQuote,
-        trailingComma,
-        bracketSpacing,
-        jsxBracketSameLine,
-        rangeStart,
-        rangeEnd,
-        parser,
-        filepath,
-    } = config;
-    const prettierOpts = {
-        arrowParens,
-        quoteProps,
-        printWidth,
-        tabWidth,
-        useTabs,
-        semi,
-        singleQuote,
-        trailingComma,
-        bracketSpacing,
-        jsxBracketSameLine,
-        rangeStart,
-        rangeEnd,
-        parser,
-        filepath,
-    };
     plop.setDefaultInclude({ actionTypes: true });
     plop.setActionType(
         "pretty-add",
-        async (data: any, config: any, plop: any) => {
-            const validInterface = interfaceCheck(config);
+        (data: any, plopConfig: any, plop: any) => {
+            const validInterface = interfaceCheck(plopConfig);
 
             if (!validInterface) {
                 throw validInterface;
             }
 
-            return await prettyAdd(data, config, plop, prettierOpts);
+            return prettyAdd(data, plopConfig, plop, config);
         }
     );
     return plop;
