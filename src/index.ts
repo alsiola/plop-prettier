@@ -7,14 +7,12 @@ const readFileP = promisify(fs.readFile);
 const access = promisify(fs.access);
 const writeFileP = promisify(fs.writeFile);
 const mkdir = promisify(fs.mkdir);
-const readdir = promisify(fs.readdir);
 
-const writeFile = (pathToWrite, data) => writeFileP(pathToWrite, data, "utf-8");
-const readFile = pathToWrite => readFileP(pathToWrite, "utf-8");
-const fileExists = pathToWrite =>
-    access(pathToWrite).then(() => true, () => false);
+const writeFile = (pathToWrite: any, data: any) => writeFileP(pathToWrite, data, "utf-8");
+const readFile = (pathToWrite: string) => readFileP(pathToWrite, "utf-8");
+const fileExists = (pathToWrite: string) => access(pathToWrite).then(() => true, () => false);
 
-const interfaceCheck = action => {
+const interfaceCheck = (action: { path: any }) => {
     if (typeof action !== "object") {
         return `Invalid action object: ${JSON.stringify(action)}`;
     }
@@ -28,10 +26,19 @@ const interfaceCheck = action => {
     return true;
 };
 
-const prettyAdd = async (data, cfg, plop, prettierOpts) => {
+const prettyAdd = async (
+    data: any,
+    cfg: { template?: any; path?: any; templateFile?: any },
+    plop: {
+        getPlopfilePath: () => string;
+        getDestBasePath: { (): string; (): string };
+        renderString: { (arg0: any, arg1: any): string; (arg0: any, arg1: any): string };
+    },
+    prettierOpts: prettier.Options
+) => {
     // if not already an absolute path, make an absolute path from the basePath (plopfile location)
-    const makeTmplPath = p => path.resolve(plop.getPlopfilePath(), p);
-    const makeDestPath = p => path.resolve(plop.getDestBasePath(), p);
+    const makeTmplPath = (p: any) => path.resolve(plop.getPlopfilePath(), p);
+    const makeDestPath = (p: any) => path.resolve(plop.getDestBasePath(), p);
 
     var { template } = cfg;
     const fileDestPath = makeDestPath(plop.renderString(cfg.path || "", data));
@@ -71,10 +78,21 @@ const prettyAdd = async (data, cfg, plop, prettierOpts) => {
     }
 };
 
-function plopPrettier(plop, config?: prettier.Options) {
+function plopPrettier(
+    plop: {
+        setDefaultInclude: (arg0: { actionTypes: boolean }) => void;
+        setActionType: (
+            arg0: string,
+            arg1: (data: any, config: any, plop: any) => Promise<string>
+        ) => void;
+    },
+    config?: prettier.Options
+) {
     // Destructure prettier options out of config otherwise unrecognised properties
     // are passed to prettier and cause a console warning
     const {
+        arrowParens,
+        quoteProps,
         printWidth,
         tabWidth,
         useTabs,
@@ -86,9 +104,11 @@ function plopPrettier(plop, config?: prettier.Options) {
         rangeStart,
         rangeEnd,
         parser,
-        filepath
+        filepath,
     } = config;
     const prettierOpts = {
+        arrowParens,
+        quoteProps,
         printWidth,
         tabWidth,
         useTabs,
@@ -100,10 +120,10 @@ function plopPrettier(plop, config?: prettier.Options) {
         rangeStart,
         rangeEnd,
         parser,
-        filepath
+        filepath,
     };
     plop.setDefaultInclude({ actionTypes: true });
-    plop.setActionType("pretty-add", async (data, config, plop) => {
+    plop.setActionType("pretty-add", async (data: any, config: any, plop: any) => {
         const validInterface = interfaceCheck(config);
 
         if (!validInterface) {
