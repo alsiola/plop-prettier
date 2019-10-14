@@ -26,6 +26,7 @@
     },
     "homepage": "https://github.com/alsiola/plop-prettier#readme",
     "devDependencies": {
+        "@types/fs-extra": "^8.0.0",
         "@types/node": "^8.10.54",
         "@types/prettier": "^1.18.3",
         "prettier": "^1.17.0",
@@ -34,5 +35,8 @@
     "peerDependencies": {
         "@types/prettier": "^1.18.3",
         "prettier": "^1.17.0"
+    },
+    "dependencies": {
+        "fs-extra": "^8.1.0"
     }
 }

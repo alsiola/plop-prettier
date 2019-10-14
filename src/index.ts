@@ -1,16 +1,12 @@
 import * as path from "path";
-import * as fs from "fs";
+import * as fs from "fs-extra";
 import * as prettier from "prettier";
-import promisify from "./promisify";
 
-const readFileP = promisify(fs.readFile);
-const access = promisify(fs.access);
-const writeFileP = promisify(fs.writeFile);
-const mkdir = promisify(fs.mkdir);
-
-const writeFile = (pathToWrite: any, data: any) => writeFileP(pathToWrite, data, "utf-8");
-const readFile = (pathToWrite: string) => readFileP(pathToWrite, "utf-8");
-const fileExists = (pathToWrite: string) => access(pathToWrite).then(() => true, () => false);
+const writeFile = (pathToWrite: any, data: any) =>
+    fs.writeFile(pathToWrite, data, "utf-8");
+const readFile = (pathToWrite: string) => fs.readFile(pathToWrite, "utf-8");
+const fileExists = (pathToWrite: string) =>
+    fs.access(pathToWrite).then(() => true, () => false);
 
 const interfaceCheck = (action: { path: any }) => {
     if (typeof action !== "object") {
@@ -32,7 +28,10 @@ const prettyAdd = async (
     plop: {
         getPlopfilePath: () => string;
         getDestBasePath: { (): string; (): string };
-        renderString: { (arg0: any, arg1: any): string; (arg0: any, arg1: any): string };
+        renderString: {
+            (arg0: any, arg1: any): string;
+            (arg0: any, arg1: any): string;
+        };
     },
     prettierOpts: prettier.Options
 ) => {
@@ -59,7 +58,7 @@ const prettyAdd = async (
         } else {
             const dirExists = await fileExists(path.dirname(fileDestPath));
             if (!dirExists) {
-                await mkdir(path.dirname(fileDestPath));
+                await fs.mkdir(path.dirname(fileDestPath));
             }
             await writeFile(
                 fileDestPath,
@@ -123,15 +122,18 @@ function plopPrettier(
         filepath,
     };
     plop.setDefaultInclude({ actionTypes: true });
-    plop.setActionType("pretty-add", async (data: any, config: any, plop: any) => {
-        const validInterface = interfaceCheck(config);
+    plop.setActionType(
+        "pretty-add",
+        async (data: any, config: any, plop: any) => {
+            const validInterface = interfaceCheck(config);
 
-        if (!validInterface) {
-            throw validInterface;
+            if (!validInterface) {
+                throw validInterface;
+            }
+
+            return await prettyAdd(data, config, plop, prettierOpts);
         }
-
-        return await prettyAdd(data, config, plop, prettierOpts);
-    });
+    );
     return plop;
 }
 
